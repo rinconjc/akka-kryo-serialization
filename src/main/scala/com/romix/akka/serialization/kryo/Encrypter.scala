@@ -44,14 +44,14 @@ trait Encrypter extends Serializer{
 
   abstract override def toBinary(o: AnyRef) = {
     printf("serialising and encrypting %s\n",o)
-    //encode(super.toBinary(o), secretKey)
-    super.toBinary(o)
+    encode(super.toBinary(o), secretKey)
+    //super.toBinary(o)
   }
 
   abstract override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]) = {
     printf("decrypting and deserialising bytes[%d]\n", bytes.size)
-    //super.fromBinary(decode(bytes, secretKey), manifest)
-    super.fromBinary(bytes,manifest)
+    super.fromBinary(decode(bytes, secretKey), manifest)
+    //super.fromBinary(bytes,manifest)
   }
 
 }

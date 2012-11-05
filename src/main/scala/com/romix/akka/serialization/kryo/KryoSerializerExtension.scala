@@ -16,17 +16,12 @@
 
 package com.romix.akka.serialization.kryo
 
-import akka.actor.Extension
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
-import akka.actor.ExtendedActorSystem
 import com.typesafe.config.Config
 
-import akka.actor.{ ActorSystem, Extension, ExtendedActorSystem, Address, DynamicAccess }
+import akka.actor.{ ActorSystem, Extension, ExtendedActorSystem }
 import akka.event.Logging
-import java.util.concurrent.ConcurrentHashMap
-import scala.collection.mutable.ArrayBuffer
-import java.io.NotSerializableException
 
 object KryoSerialization {
 
@@ -57,7 +52,11 @@ object KryoSerialization {
     val KryoReferenceMap: Boolean = config.getBoolean("akka.actor.kryo.kryo-reference-map")
 
     val UseManifests: Boolean = config.getBoolean("akka.actor.kryo.use-manifests")
-    
+
+    val UseEncryption = config.getBoolean("akka.actor.kryo.use-encryption")
+
+    val EncryptionKey: String = config.getString("akka.actor.kryo.encryption-key")
+
     private def configToMap(cfg: Config): Map[String, String] =
       cfg.root.unwrapped.asScala.toMap.map { case (k, v) => (k, v.toString) }
   }  

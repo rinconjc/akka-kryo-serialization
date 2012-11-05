@@ -79,10 +79,7 @@ class KryoSerializer (val system: ExtendedActorSystem) extends Serializer {
 		log.debug("Got use manifests: {}", useManifests)
 	}
 	
-	val serializer = try new KryoBasedSerializer(getKryo(idStrategy, serializerType), 
-											 bufferSize, 
-											 serializerPoolSize, 
-											 useManifests)
+	val serializer = try newSerializer
 					catch {
 						case e: Exception => {
 							log.error("exception caught during akka-kryo-serialization startup: {}", e)
@@ -116,19 +113,26 @@ class KryoSerializer (val system: ExtendedActorSystem) extends Serializer {
 			obj
 	}
 	
-	val serializerPool = new ObjectPool[Serializer](serializerPoolSize, ()=> {
-		new KryoBasedSerializer(getKryo(idStrategy, serializerType), 
-								bufferSize, 
-								serializerPoolSize,
-								useManifests)
-	})
-	
-	private def getSerializer = serializerPool.fetch
+	val serializerPool = new ObjectPool[Serializer](serializerPoolSize, ()=> newSerializer)
+
+  private def newSerializer = if(settings.UseEncryption)
+    new KryoBasedSerializer(getKryo(idStrategy, serializerType),
+              bufferSize,
+              serializerPoolSize,
+              useManifests) with Encrypter{
+                val secretKey = settings.EncryptionKey
+              }
+    else new KryoBasedSerializer(getKryo(idStrategy, serializerType),
+              bufferSize,
+              serializerPoolSize,
+              useManifests)
+
+  private def getSerializer = serializerPool.fetch
 	private def releaseSerializer(ser: Serializer) = serializerPool.release(ser)
 	
 	private def getKryo(strategy: String, serializerType: String): Kryo = {
 			val referenceResolver = if (settings.KryoReferenceMap) new MapReferenceResolver() else new ListReferenceResolver()  
-			val kryo = new Kryo(new KryoClassResolver(implicitRegistrationLogging), referenceResolver)
+			val kryo = new Kryo();//new KryoClassResolver(implicitRegistrationLogging), referenceResolver)
 			// Support deserialization of classes without no-arg constructors
 			kryo.setInstantiatorStrategy(new StdInstantiatorStrategy())
 			// Support serialization of Scala collections
@@ -143,7 +147,9 @@ class KryoSerializer (val system: ExtendedActorSystem) extends Serializer {
 				MiniLog.TRACE()
 			
 			strategy match  {
-			case "default" => {}
+			case "default" => {
+				//kryo.setRegistrationRequired(false)
+			}
 
 			case "incremental" => {
 				kryo.setRegistrationRequired(false)

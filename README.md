@@ -10,7 +10,9 @@ Features
 *   Does not require any additional build steps like compiling proto files, when using protobuf serialization
 *   Almost any Scala and Java class can be serialized using it without any additional configuration or code changes
 *   Efficient serialization of such Scala types like Option, Tuple, Enumeration, most of Scala's collection types
+* Added support for encryption/decryption
 *   Apache 2.0 license
+
 
 
 How to use this library in your project
@@ -123,6 +125,9 @@ The following options are available for configuring this serializer:
 				"package3.name3.className3",  
 				"package4.name4.className4"  
 			]  
+			# encryption
+			use-encryption = false
+			encryption-key = "should be changed" 			
 		}
 
 
